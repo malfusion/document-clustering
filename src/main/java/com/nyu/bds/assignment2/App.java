@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -33,13 +34,21 @@ public class App
     	    	
 		TextPreprocessor preprocessor = new TextPreprocessor();		
 		
+		HashMap<String, HashMap<String, List<String>>> folder_files_words = new HashMap<String, HashMap<String, List<String>>>();
+		
 		for(String folderPath: FileOperations.readFileAsLines("/Users/coderpc/Class/BDS/ass2/data.txt")) {
+			folder_files_words.put(folderPath, new HashMap<String, List<String>>());
 			for(String filePath : FileOperations.getFilesInFolder(folderPath)) {
-				String content = FileOperations.readFile(filePath);
+				HashMap<String, List<String>> file_words = folder_files_words.get(folderPath);
+				file_words.put(filePath, new ArrayList<String>());
+
 				System.out.println(filePath);
-				System.out.println(preprocessor.process(content).size());
+				String content = FileOperations.readFile(filePath);
+
+				file_words.put(filePath, preprocessor.process(content));
 			}
 		}
-
+		TermDocumentStats termStats = new TermDocumentStats(folder_files_words);
+		termStats.process();
     }
 }

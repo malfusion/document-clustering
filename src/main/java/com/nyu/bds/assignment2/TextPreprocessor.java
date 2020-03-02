@@ -36,6 +36,7 @@ public class TextPreprocessor {
 		ArrayList<Integer> sizes = new ArrayList<Integer>(Arrays.asList(1, 2, 3));
 		res.addAll(getNGrams(labels, sizes));
 		
+		
 		return res;
 	}
 	
@@ -53,6 +54,10 @@ public class TextPreprocessor {
 		for (CoreLabel label: labels) {
 			String word = label.lemma(); 
 			if (word != null) {
+				word = word.replaceAll("\\p{Punct}","");
+				if(word.trim().length() == 0) {
+					continue;
+				}
 				if(deque.size() == maxSize) {
 					deque.removeFirst();
 				}
