@@ -50,5 +50,9 @@ public class App
 		}
 		TermDocumentStats termStats = new TermDocumentStats(folder_files_words);
 		termStats.process();
+		
+		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), termStats.getAllTfIdf());
+		clustering.cluster();
+			
     }
 }
