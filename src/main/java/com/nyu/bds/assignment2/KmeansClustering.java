@@ -71,6 +71,7 @@ public class KmeansClustering {
 				}
 			}
 			
+			
 			// Find the new centroid
 			HashMap<String, Double> newCentroid = new HashMap<String, Double>();
 			for (String word: wordsInvolved) {
@@ -89,16 +90,14 @@ public class KmeansClustering {
 		HashMap<String, Integer> prev_files_centroids = null;
 		HashMap<String, Integer> files_centroids = assign();
 		while(!isAssignmentEqual(prev_files_centroids, files_centroids)) {
-			System.out.println("notsame");
-			System.out.println(centroids.get(0));
 			prev_files_centroids = files_centroids;
+//			System.out.println(centroids);
 			updateCentroids(files_centroids);
-			System.out.println(centroids.get(0));
+			System.out.println(centroids);
 			files_centroids = assign();
-			
+//			System.out.println(prev_files_centroids.values());
+//			System.out.println(files_centroids.values());
 			System.out.println("Nextloop");
-			
-	
 		}
 		
 	}
@@ -132,15 +131,15 @@ public class KmeansClustering {
 		
 		
 		for(String filePath : files_words_tfidf.keySet()) {
-			Double minSimilarity = Double.MAX_VALUE;
+			Double maxSimilarity = Double.MIN_VALUE;
 			Integer idx = 0;
 			for (HashMap<String, Double> centroid: centroids) {
 				Double ASquared = centroidsSquared.get(idx);
 				Double BSquared = getSqrtOfSquared(files_words_tfidf.get(filePath));
 				Double AB = getDotProduct(centroid, files_words_tfidf.get(filePath));
 				Double similarity = AB / (ASquared*BSquared);
-				if(similarity < minSimilarity) {
-					minSimilarity = similarity;
+				if(similarity > maxSimilarity) {
+					maxSimilarity = similarity;
 					files_centroids.put(filePath, idx);
 				}
 				idx += 1;

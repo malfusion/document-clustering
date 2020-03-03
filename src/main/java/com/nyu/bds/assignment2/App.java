@@ -51,8 +51,30 @@ public class App
 		TermDocumentStats termStats = new TermDocumentStats(folder_files_words);
 		termStats.process();
 		
-		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), termStats.getAllTfIdf());
+		KmeansClustering clustering = new KmeansClustering(10, termStats.getAllWords(), termStats.getAllTfIdf());
 		clustering.cluster();
+    	
+//    	ArrayList<String> words = new ArrayList<String>();
+//    	words.add("Hello");
+//    	words.add("Welcome");
+//    	words.add("Bye");
+//    	String[] wordsstrs = new String[3];
+//    	HashMap<String, HashMap<String, HashMap<String, Double> >> folders_files_words_tfidf = new HashMap<String, HashMap<String, HashMap<String, Double>>>();
+//    	
+//    	HashMap<String, Double> words1 = new HashMap<String, Double>();
+//    	words1.put("Hello", 2.0);
+//    	words1.put("Welcome", 2.1);
+//    	HashMap<String, HashMap<String, Double>> files_words1 = new HashMap<String, HashMap<String,Double>>();    	
+//    	files_words1.put("filea", words1);
+//    	folders_files_words_tfidf.put("a", files_words1);
+//    	
+//    	HashMap<String, Double> words2 = new HashMap<String, Double>();
+//    	words2.put("Bye", 2.0);
+//    	HashMap<String, HashMap<String, Double>> files_words2 = new HashMap<String, HashMap<String,Double>>();    	
+//    	files_words2.put("fileb", words2);
+//    	folders_files_words_tfidf.put("b", files_words2);
+//		KmeansClustering clustering = new KmeansClustering(2, words.toArray(wordsstrs), folders_files_words_tfidf);
+//		clustering.cluster();
 			
     }
 }
