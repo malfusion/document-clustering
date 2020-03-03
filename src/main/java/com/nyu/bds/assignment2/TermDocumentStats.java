@@ -63,8 +63,12 @@ public class TermDocumentStats {
 				for(String word: folders_files_words.get(folderPath).get(filePath)) {
 					Double res = Math.log(totalDocs/word_present_in_files.get(word));
 					res *= (1 + Math.log(files_words.get(filePath).get(word)));
-					words_tfidf.put(word, res);
+					// CONDITION FOR FILTERING TFIDF:
+					if (res >= 1.0) {
+						words_tfidf.put(word, res);	
+					}
 				}
+				System.out.println("Filepath" + filePath + "Has words:" + words_tfidf.size());
 			}
 		}
 		

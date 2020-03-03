@@ -12,6 +12,7 @@ import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import intoxicant.analytics.coreNlp.StopwordAnnotator;
 
 public class TextPreprocessor {
 	private StanfordCoreNLP pipeline;
@@ -29,6 +30,7 @@ public class TextPreprocessor {
 		
 		Annotation document = new Annotation(content);
 		pipeline.annotate(document);
+		
 		
 		List<CoreLabel> labels = document.get(CoreAnnotations.TokensAnnotation.class);
 		res.addAll(getNamedEntities(labels));
@@ -53,7 +55,7 @@ public class TextPreprocessor {
 		
 		for (CoreLabel label: labels) {
 			String word = label.lemma(); 
-			if (word != null) {
+			if (word != null && !label.get(StopwordAnnotator.class).first()) {
 				word = word.replaceAll("\\p{Punct}","");
 				if(word.trim().length() == 0) {
 					continue;

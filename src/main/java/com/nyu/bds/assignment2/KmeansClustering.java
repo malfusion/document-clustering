@@ -3,6 +3,7 @@ package com.nyu.bds.assignment2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class KmeansClustering {
@@ -63,6 +64,10 @@ public class KmeansClustering {
 				}
 			}
 			
+			if(filesBelongingToCentroid.size() == 0) {
+				throw new Error("NO FILES BELONG TO THIS CLUSTER");
+			}
+			
 			// Get all words intersecting in these files
 			Set<String> wordsInvolved = new HashSet<String>();
 			for (String filePath: filesBelongingToCentroid) {
@@ -96,7 +101,10 @@ public class KmeansClustering {
 			System.out.println(centroids);
 			files_centroids = assign();
 //			System.out.println(prev_files_centroids.values());
-//			System.out.println(files_centroids.values());
+			for (Entry<String, Integer> entry : files_centroids.entrySet()) {
+				System.out.println(entry);
+			}
+			
 			System.out.println("Nextloop");
 		}
 		
@@ -120,6 +128,21 @@ public class KmeansClustering {
 		return sum;
 	}
 	
+	public Double getEuclideanDistance(HashMap<String, Double> centroidSparseMatrix, HashMap<String, Double> documentSparseMatrix) {
+		Double sum = 0.0;
+		Set<String> words = new HashSet<String>();
+		for(String key: centroidSparseMatrix.keySet()) {
+			words.add(key);
+		}
+		for(String key: documentSparseMatrix.keySet()) {
+			words.add(key);
+		}
+		for(String word: words) {
+			sum += Math.pow((centroidSparseMatrix.getOrDefault(word, 0.0) - documentSparseMatrix.getOrDefault(word, 0.0)), 2); 
+		}
+		return Math.sqrt(sum);
+	}
+	
 	public HashMap<String, Integer> assign() {
 		ArrayList<Double> centroidsSquared = new ArrayList<Double>();
 		
@@ -131,15 +154,27 @@ public class KmeansClustering {
 		
 		
 		for(String filePath : files_words_tfidf.keySet()) {
-			Double maxSimilarity = Double.MIN_VALUE;
+			/*
+			 * REMEMBER THE DIFFERENCE BETWEEN DISTANCE AND SIMILARITY
+			 */
+			Double minDistance = Double.MAX_VALUE;
 			Integer idx = 0;
 			for (HashMap<String, Double> centroid: centroids) {
-				Double ASquared = centroidsSquared.get(idx);
-				Double BSquared = getSqrtOfSquared(files_words_tfidf.get(filePath));
-				Double AB = getDotProduct(centroid, files_words_tfidf.get(filePath));
-				Double similarity = AB / (ASquared*BSquared);
-				if(similarity > maxSimilarity) {
-					maxSimilarity = similarity;
+				
+				Double distance = getEuclideanDistance(centroid, files_words_tfidf.get(filePath));
+				
+				/*
+				 * START COSINE SIMILARITY
+				 * */
+//				Double ASquared = centroidsSquared.get(idx);
+//				Double BSquared = getSqrtOfSquared(files_words_tfidf.get(filePath));
+//				Double AB = getDotProduct(centroid, files_words_tfidf.get(filePath));
+//				Double similarity = AB / (ASquared*BSquared);
+				/*
+				 * END COSINE SIMILARITY
+				 * */
+				if(distance < minDistance) {
+					minDistance = distance;
 					files_centroids.put(filePath, idx);
 				}
 				idx += 1;
