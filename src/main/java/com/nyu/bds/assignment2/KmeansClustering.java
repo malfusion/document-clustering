@@ -1,6 +1,7 @@
 package com.nyu.bds.assignment2;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -8,27 +9,34 @@ import java.util.Set;
 
 public class KmeansClustering {
 	
-	ArrayList<HashMap<String, Double>> centroids;
+	double[][] centroids;
 	String[] features;
-	HashMap<String, HashMap<String, Double>> files_words_tfidf;
+	int numClusters;
+	HashMap<String, double[]> wordTfidfByFile;
 	
-	public KmeansClustering(Integer k, String[] features,HashMap<String, HashMap<String, HashMap<String, Double>>> folders_files_words_tfidf) {
-		centroids = new ArrayList<HashMap<String, Double>>();
-		for(Integer i=0; i < k; i++) {
-			HashMap<String, Double> centroid = new HashMap<String, Double>();
-			for (String word: features) {
-				centroid.put(word, Math.random());
-			}
-			centroids.add(centroid);
-		}
-		this.files_words_tfidf = new HashMap<String, HashMap<String,Double>>();
+	public KmeansClustering(int numClusters, String[] features, HashMap<String, double[]> wordTfidfByFile, double[][] initialCentroids) {
+		this.centroids = initialCentroids;
+		this.numClusters = numClusters;
+		this.wordTfidfByFile = wordTfidfByFile;
 		this.features = features;
-		for(String folderPath: folders_files_words_tfidf.keySet()) {
-			for(String filePath: folders_files_words_tfidf.get(folderPath).keySet()) {
-				files_words_tfidf.put(filePath, folders_files_words_tfidf.get(folderPath).get(filePath));
-			}
-		}
+//		this.centroids = new double[numClusters][features.length];
 		
+		
+		
+//		for(int i=0; i < numClusters; i++) {
+//			double[] randomPoint = wordTfidfByFile.get(wordTfidfByFile.keySet().toArray()[i]);
+//			for (int j = 0; j < features.length; j++) {
+//				centroids[i][j] = randomPoint[j];
+//			}
+//		}
+		
+		for (int i = 0; i < numClusters; i++) {
+			System.out.println("^TopCentroid");
+			for (int j = 0; j < features.length; j++) {
+				System.out.print(centroids[i][j] + " ");
+			}
+			
+		}
 	}
 	
 	public boolean isAssignmentEqual(HashMap<String, Integer> A, HashMap<String, Integer> B) {
@@ -51,10 +59,10 @@ public class KmeansClustering {
 		}
 	}
 	
+	
 	public void updateCentroids(HashMap<String, Integer> files_centroids) {
-		ArrayList<HashMap<String, Double>> newCentroids = new ArrayList<HashMap<String,Double>>();
 		
-		for (int i = 0; i < centroids.size(); i++) {
+		for (int i = 0; i < numClusters; i++) {
 			ArrayList<String> filesBelongingToCentroid = new ArrayList<String>();
 			
 			// Get all files belonging to this centroid
@@ -65,40 +73,38 @@ public class KmeansClustering {
 			}
 			
 			if(filesBelongingToCentroid.size() == 0) {
-				throw new Error("NO FILES BELONG TO THIS CLUSTER");
+				continue;
+//				throw new Error("NO FILES BELONG TO THIS CLUSTER");
 			}
 			
-			// Get all words intersecting in these files
-			Set<String> wordsInvolved = new HashSet<String>();
-			for (String filePath: filesBelongingToCentroid) {
-				for (String word: files_words_tfidf.get(filePath).keySet()) {
-					wordsInvolved.add(word);
-				}
-			}
-			
-			
+			int numFilesBelongingToCentroid = filesBelongingToCentroid.size();
+			System.out.println("Num files belogning to centroid" + numFilesBelongingToCentroid);
 			// Find the new centroid
-			HashMap<String, Double> newCentroid = new HashMap<String, Double>();
-			for (String word: wordsInvolved) {
+			
+			for (int j = 0; j < features.length; j++) {
 				Double sum = 0.0;
 				for(String filePath: filesBelongingToCentroid) {
-					sum += files_words_tfidf.get(filePath).getOrDefault(word, 0.0);
+					sum += wordTfidfByFile.get(filePath)[j];	
 				}
-				newCentroid.put(word, sum / filesBelongingToCentroid.size());
+				centroids[i][j] = sum / numFilesBelongingToCentroid;
 			}
-			newCentroids.add(newCentroid);
 		}
-		centroids = newCentroids;
+		for (int i = 0; i < numClusters; i++) {
+			for (int j = 0; j < features.length; j++) {
+				System.out.print(centroids[i][j] + " ");
+			}
+			System.out.println("^Centroid");
+		}
 	}
 	
 	public void cluster() {
 		HashMap<String, Integer> prev_files_centroids = null;
 		HashMap<String, Integer> files_centroids = assign();
+		
+		System.out.println(files_centroids.values());
 		while(!isAssignmentEqual(prev_files_centroids, files_centroids)) {
 			prev_files_centroids = files_centroids;
-//			System.out.println(centroids);
 			updateCentroids(files_centroids);
-			System.out.println(centroids);
 			files_centroids = assign();
 //			System.out.println(prev_files_centroids.values());
 			for (Entry<String, Integer> entry : files_centroids.entrySet()) {
@@ -110,59 +116,48 @@ public class KmeansClustering {
 		
 	}
 	
-	public Double getSqrtOfSquared(HashMap<String, Double> sparseMatrix) {
+	public double getSqrtOfSquared(double[] arr) {
 		double sum = 0.0;
-		for (String word: sparseMatrix.keySet()) {
-			sum += sparseMatrix.get(word) * sparseMatrix.get(word);
+		for (int i = 0; i < features.length; i++) {
+			sum += arr[i] * arr[i];
 		}
 		return Math.sqrt(sum);
 	}
 
-	public Double getDotProduct(HashMap<String, Double> centroidSparseMatrix, HashMap<String, Double> documentSparseMatrix) {
+	public Double getDotProduct(double[] centroidArr, double[] documentArr) {
 		double sum = 0.0;
-		for (String word: documentSparseMatrix.keySet()) {
-			if(centroidSparseMatrix.containsKey(word)) {
-				sum += documentSparseMatrix.get(word) * centroidSparseMatrix.get(word);
-			}
+		for (int i = 0; i < features.length; i++) {
+			sum += documentArr[i] * centroidArr[i];
 		}
 		return sum;
 	}
 	
-	public Double getEuclideanDistance(HashMap<String, Double> centroidSparseMatrix, HashMap<String, Double> documentSparseMatrix) {
-		Double sum = 0.0;
-		Set<String> words = new HashSet<String>();
-		for(String key: centroidSparseMatrix.keySet()) {
-			words.add(key);
-		}
-		for(String key: documentSparseMatrix.keySet()) {
-			words.add(key);
-		}
-		for(String word: words) {
-			sum += Math.pow((centroidSparseMatrix.getOrDefault(word, 0.0) - documentSparseMatrix.getOrDefault(word, 0.0)), 2); 
+	public double getEuclideanDistance(double[] centroidArr, double[] documentArr) {
+		double sum = 0.0;
+		for (int i = 0; i < features.length; i++) {
+			sum += Math.pow((centroidArr[i] - documentArr[i]), 2);
 		}
 		return Math.sqrt(sum);
 	}
 	
 	public HashMap<String, Integer> assign() {
-		ArrayList<Double> centroidsSquared = new ArrayList<Double>();
-		
-		for (HashMap<String, Double> centroid: centroids) {
-			centroidsSquared.add(getSqrtOfSquared(centroid));
-		}
+//		double[] centroidsSquared = new double[numClusters];
+//		
+//		for (int i = 0; i < numClusters; i++) {
+//			centroidsSquared[i] = getSqrtOfSquared(centroids[i]);
+//		}
 		
 		HashMap<String, Integer> files_centroids = new HashMap<String, Integer>();
 		
-		
-		for(String filePath : files_words_tfidf.keySet()) {
+		for(String filePath : wordTfidfByFile.keySet()) {
 			/*
 			 * REMEMBER THE DIFFERENCE BETWEEN DISTANCE AND SIMILARITY
 			 */
 			Double minDistance = Double.MAX_VALUE;
-			Integer idx = 0;
-			for (HashMap<String, Double> centroid: centroids) {
-				
-				Double distance = getEuclideanDistance(centroid, files_words_tfidf.get(filePath));
-				
+			
+			for (int i = 0; i < numClusters; i++) {
+				Double distance = getEuclideanDistance(centroids[i], wordTfidfByFile.get(filePath));
+				System.out.println(distance);
 				/*
 				 * START COSINE SIMILARITY
 				 * */
@@ -175,16 +170,12 @@ public class KmeansClustering {
 				 * */
 				if(distance < minDistance) {
 					minDistance = distance;
-					files_centroids.put(filePath, idx);
+					files_centroids.put(filePath, i);
 				}
-				idx += 1;
 			}
-			
+			System.out.println("Clear");
 		}
-
 		return files_centroids;
-			
-		
 	}
 	
 }

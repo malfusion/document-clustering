@@ -3,8 +3,14 @@ package com.nyu.bds.assignment2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
+import Jama.Matrix;
+
+
 
 public class TermDocumentStats {
 	
@@ -87,15 +93,52 @@ public class TermDocumentStats {
 		    for (int count : wordFreqByFile.get(filePath)) {
 		        numWordsInFile += count;
 		    }
+		    int numValidWords = 0;
 			for (int i = 0; i < totalUniqueWords; i++) {
 				double res = Math.log(totalDocs/globalWordOccurence[i]);
-				res *= (wordFreqByFile.get(filePath)[i]*1.0) / numWordsInFile; 	
-				wordTfIdf[i] = res;
+				res *= (wordFreqByFile.get(filePath)[i]*1.0) / numWordsInFile;
+//				if(wordFreqByFile.get(filePath)[i]>1){
+//					numValidWords+=1;
+//					System.out.println("Valid: " + filePath+"::" + allWords[i]);
+//				}else {
+//					res = 0.0;
+//				}
+//				if(res > 0.1) {
+				wordTfIdf[i] = res;	
+//				}
 			}
+			System.out.println("ValidWords: " + filePath+"::" + numValidWords);
+//			for(int index: indexesOfTopElements(wordTfIdf, 10)){
+//				System.out.println(index +":"+ wordTfIdf[index]);
+//			};
+//			System.out.println(filePath +"-----"+ wordTfIdf[lookupWordId("airline")]);
 			wordTfidfByFile.put(filePath, wordTfIdf);
 			
 		}
+		
+		System.out.println("WORD AIRLINE" + globalWordOccurence[lookupWordId("airline")]);
 	}
+	
+	public int[] indexesOfTopElements(double[] orig, int nummax) {
+		double[] copy = Arrays.copyOf(orig,orig.length);
+        Arrays.sort(copy);
+        double[] honey = Arrays.copyOfRange(copy,copy.length - nummax, copy.length);
+        Set<Integer> result = new HashSet<Integer>();
+        int[] arr = new int[nummax];
+        int resultPos = 0;
+        for(int i = 0; i < honey.length; i++) {
+        	for(int j = 0; j < orig.length; j++) {
+        		if(orig[j] == honey[i] && !result.contains(j)) {
+        			result.add(j);
+        			arr[resultPos++] = j;
+        			System.out.println(allWords[j]);
+        			break;
+        		}
+        	}
+        }
+        
+        return arr;
+    }
 	
 	public String[] getAllWords(){
 		return allWords;
@@ -114,6 +157,16 @@ public class TermDocumentStats {
 	public HashMap<String, double[]> getAllTfIdf(){
 		return wordTfidfByFile;
 	}
+	
+	public Matrix getAllTfIdfAsJama(){
+		double[][] res = new double[wordTfidfByFile.keySet().size()][totalUniqueWords];
+		int i = 0;
+		for (String filePath : wordTfidfByFile.keySet()) {
+			res[i++] = wordTfidfByFile.get(filePath);
+		}
+		return new Matrix(res);
+	}
+	
 	
 	
 	
