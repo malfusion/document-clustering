@@ -35,7 +35,7 @@ public class TextPreprocessor {
 		List<CoreLabel> labels = document.get(CoreAnnotations.TokensAnnotation.class);
 		res.addAll(getNamedEntities(labels));
 		
-		ArrayList<Integer> sizes = new ArrayList<Integer>(Arrays.asList(1, 2, 3));
+		ArrayList<Integer> sizes = new ArrayList<Integer>(Arrays.asList(1, 2));
 		res.addAll(getNGrams(labels, sizes));
 		
 		
