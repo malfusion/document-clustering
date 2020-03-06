@@ -3,97 +3,116 @@ package com.nyu.bds.assignment2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class TermDocumentStats {
 	
-	HashMap<String, List<String>> folder_files = new HashMap<String, List<String>>();
-	HashMap<String, HashMap<String, Integer>> files_words = new HashMap<String, HashMap<String, Integer>>();
-	HashMap<String, Integer> word_present_in_files = new HashMap<String, Integer>();
+	HashMap<String, int[]> wordFreqByFile = new HashMap<String, int[]>();
+	HashMap<String, double[]> wordTfidfByFile = new HashMap<String, double[]>();
+	HashMap<String, List<String>> wordListByFile = new HashMap<String, List<String>>();
 	
-	HashMap<String, HashMap<String, HashMap<String, Double> >> folders_files_words_tfidf = new HashMap<String, HashMap<String, HashMap<String, Double>>>();
+	HashMap<String, Integer> wordIdLookup = new HashMap<String, Integer>();
 	
-	HashMap<String, HashMap<String, List<String>>> folders_files_words = new HashMap<String, HashMap<String, List<String>>>();
-	
+	String[] allWords;
+	int[] globalWordOccurence;
 	Integer totalDocs = 0;
+	Integer totalUniqueWords = 0;
 	
-	public TermDocumentStats(HashMap<String, HashMap<String, List<String>>> folders_files_words) {
-		this.folders_files_words = folders_files_words;
+	public TermDocumentStats(HashMap<String, List<String>> files_words) {
+		wordListByFile = files_words;
+		generateWordLookupTable();
+		totalUniqueWords = wordIdLookup.size();
+		totalDocs = files_words.keySet().size();
+		globalWordOccurence = new int[totalUniqueWords];
+	}
+	
+	
+	public Integer lookupWordId(String word) {
+		return wordIdLookup.get(word);
+	}
+	
+	public void generateWordLookupTable() {
+		Integer ctr = 0;
+		List<String> words = new ArrayList<String>();
+		for (String filePath: wordListByFile.keySet()) {
+			for (String word: wordListByFile.get(filePath)) {
+				if(!wordIdLookup.containsKey(word)) {
+					wordIdLookup.put(word, ctr);
+					words.add(word);
+					ctr += 1;
+				}
+			}
+		}
+		allWords = new String[ctr];
+		allWords = words.toArray(allWords);
+	}
+	
+	public int[] getWordFreqForFile(String filePath) {
+		int[] wordCounts = new int[totalUniqueWords];
+		for(String word: wordListByFile.get(filePath)) {
+			wordCounts[lookupWordId(word)] += 1;
+		}
+		return wordCounts;
+	}
+	
+	public void updateGlobalWordOccurence(int[] wordFreq) {
+		for (int i = 0; i < totalUniqueWords; i++) {
+			if(wordFreq[i] > 0) {
+				globalWordOccurence[i] += 1;
+			}
+		}
 	}
 	
 	
 	public void process() {
-		for(String folderPath: folders_files_words.keySet()) {
-			folder_files.put(folderPath, new ArrayList<String>());
-			for(String filePath : folders_files_words.get(folderPath).keySet()) {
-				folder_files.get(folderPath).add(filePath);
-				files_words.put(filePath, new HashMap<String, Integer>());
-				HashMap<String, Integer> current_file_words_map = files_words.get(filePath);
-
-				String content = FileOperations.readFile(filePath);
-				System.out.println(filePath);
-				
-				List<String> words = folders_files_words.get(folderPath).get(filePath);
-				
-				for(String word: words) {
-					if (!current_file_words_map.containsKey(word)) {
-						current_file_words_map.put(word, 0);
-					}
-					current_file_words_map.put(word, files_words.get(filePath).get(word) + 1);
-				}
-				
-				// Updating the presence count for global word-document statistics
-				for (String wordInFile: current_file_words_map.keySet()) {
-					if (!word_present_in_files.containsKey(wordInFile)) {
-						word_present_in_files.put(wordInFile, 0);
-					}
-					word_present_in_files.put(wordInFile, word_present_in_files.get(wordInFile)+1);
-				}
-				totalDocs += 1;
-			}
+		for(String filePath : wordListByFile.keySet()) {
+			// Get Word Frequencies for file
+			int[] wordFreq= getWordFreqForFile(filePath);
+			// Add to file-word frequency map
+			wordFreqByFile.put(filePath, wordFreq);
+			// Updating the presence count for global word-document statistics
+			updateGlobalWordOccurence(wordFreq);
 		}
 		
-		for(String folderPath: folders_files_words.keySet()) {
-			folders_files_words_tfidf.put(folderPath, new HashMap<String, HashMap<String, Double>>());
-			HashMap<String, HashMap<String, Double>> files_words_tfidf = folders_files_words_tfidf.get(folderPath);
-			for(String filePath : folders_files_words.get(folderPath).keySet()) {
-				files_words_tfidf.put(filePath, new HashMap<String, Double>());
-				HashMap<String, Double> words_tfidf = files_words_tfidf.get(filePath);
-				
-				for(String word: folders_files_words.get(folderPath).get(filePath)) {
-					Double res = Math.log(totalDocs/word_present_in_files.get(word));
-					res *= (1 + Math.log(files_words.get(filePath).get(word)));
-					// CONDITION FOR FILTERING TFIDF:
-					if (res >= 4.0) {
-						System.out.println(filePath + ":::" + word);
-						words_tfidf.put(word, res);
-					}
-				}
-				System.out.println("Filepath" + filePath + "Has words:" + words_tfidf.size());
-			}
-		}
 		
-		System.out.println("Number of words:" + word_present_in_files.size());
+		
+	}
+	
+	public void calculateTfIdf() {
+		for(String filePath : wordListByFile.keySet()) {
+			double[] wordTfIdf= new double[totalUniqueWords];
+			int numWordsInFile = 0;
+			/// Count total words in file
+		    for (int count : wordFreqByFile.get(filePath)) {
+		        numWordsInFile += count;
+		    }
+			for (int i = 0; i < totalUniqueWords; i++) {
+				double res = Math.log(totalDocs/globalWordOccurence[i]);
+				res *= (wordFreqByFile.get(filePath)[i]*1.0) / numWordsInFile; 	
+				wordTfIdf[i] = res;
+			}
+			wordTfidfByFile.put(filePath, wordTfIdf);
+			
+		}
 	}
 	
 	public String[] getAllWords(){
-		String[] words = new String[word_present_in_files.size()];
-		word_present_in_files.keySet().toArray(words);
-		Arrays.sort(words);
-		return words;
+		return allWords;
 	}
 
-	public double getTfIdf(String folderPath, String filePath, String word) {
-		HashMap<String, Double> word_map = folders_files_words_tfidf.get(folderPath).get(filePath);
-		if(word_map.containsKey(word)) {
-			return word_map.get(word);
-		} else {
+	public double getTfIdf(String filePath, String word) {
+		if(!wordTfidfByFile.containsKey(filePath)) {
 			return 0.0;
 		}
+		if(lookupWordId(word) == null) {
+			return 0.0;
+		}
+		return wordTfidfByFile.get(filePath)[lookupWordId(word)];
 	}
 	
-	public HashMap<String, HashMap<String, HashMap<String, Double>>> getAllTfIdf(){
-		return folders_files_words_tfidf;
+	public HashMap<String, double[]> getAllTfIdf(){
+		return wordTfidfByFile;
 	}
 	
 	

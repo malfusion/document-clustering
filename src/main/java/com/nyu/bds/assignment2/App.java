@@ -35,24 +35,32 @@ public class App
 		TextPreprocessor preprocessor = new TextPreprocessor();		
 //		
 		HashMap<String, HashMap<String, List<String>>> folder_files_words = new HashMap<String, HashMap<String, List<String>>>();
+		HashMap<String, List<String>> files_words = new HashMap<String, List<String>>();
 		
 		for(String folderPath: FileOperations.readFileAsLines("/Users/coderpc/Class/BDS/ass2/data.txt")) {
-			folder_files_words.put(folderPath, new HashMap<String, List<String>>());
 			for(String filePath : FileOperations.getFilesInFolder(folderPath)) {
-				HashMap<String, List<String>> file_words = folder_files_words.get(folderPath);
-				file_words.put(filePath, new ArrayList<String>());
-
 				System.out.println(filePath);
 				String content = FileOperations.readFile(filePath);
-
-				file_words.put(filePath, preprocessor.process(content));
+				files_words.put(filePath, preprocessor.process(content));
 			}
 		}
-		TermDocumentStats termStats = new TermDocumentStats(folder_files_words);
-		termStats.process();
 		
-		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), termStats.getAllTfIdf());
-		clustering.cluster();
+		
+		
+		
+		TermDocumentStats termStats = new TermDocumentStats(files_words);
+		termStats.process();
+		termStats.calculateTfIdf();
+		for (String filePath: termStats.getAllTfIdf().keySet()) {
+			for (double tfidf: termStats.getAllTfIdf().get(filePath)) {
+				System.out.print(tfidf + " ");	
+			}
+			System.out.print("\n");
+		}
+		
+		
+//		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), termStats.getAllTfIdf());
+//		clustering.cluster();
     	
 //    	System.out.println(preprocessor.process("Hello the i am is a random stranger"));
     	
