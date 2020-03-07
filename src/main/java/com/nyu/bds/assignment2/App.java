@@ -1,5 +1,6 @@
 package com.nyu.bds.assignment2;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Array;
@@ -14,11 +15,17 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 
+import javax.swing.JFrame;
+
 import com.nyu.bds.assignment2.FileOperations;
 
 import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
 import Jama.SingularValueDecomposition;
+import de.erichseifert.gral.data.DataSeries;
+import de.erichseifert.gral.data.DataTable;
+import de.erichseifert.gral.plots.XYPlot;
+import de.erichseifert.gral.ui.InteractivePanel;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -57,7 +64,7 @@ public class App
 		termStats.calculateTfIdf();
 		
 		HashMap<String, double[]> a = termStats.getAllTfIdf();
-		double [][] centroids = new double[3][termStats.getAllWords().length];
+		double [][] folderVector = new double[3][termStats.getAllWords().length];
 		int[] fileCounts = new int[3];
 		for (String file: a.keySet()) {
 			int i=0;
@@ -72,20 +79,28 @@ public class App
 				fileCounts[i] += 1;
 			}
 			for (int j = 0; j < termStats.getAllWords().length; j++) {
-				centroids[i][j] += a.get(file)[j];
+				folderVector[i][j] += a.get(file)[j];
 			}
 		}
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < termStats.getAllWords().length; j++) {
-				centroids[i][j] = centroids[i][j]/fileCounts[i];
+				folderVector[i][j] = folderVector[i][j]/fileCounts[i];
 			}
+			System.out.println("Top 10 in folder "+ (i+1) +":");
+			int[] topWords = termStats.indexesOfTopElements(folderVector[i], 10);
+			for (int j = 9; j >= 0; j--) {
+				System.out.println(termStats.getAllWords()[topWords[j]]);
+			}
+			
 		}
-//		
-		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), termStats.getAllTfIdf(), centroids);
-		clustering.cluster();
 		
-//		Matrix tfidf = termStats.getAllTfIdfAsJama();
-//		SingularValueDecomposition svd = new SingularValueDecomposition(termStats.getAllTfIdfAsJama().transpose());
+		
+//		
+//		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), termStats.getAllTfIdf(), centroids);
+//		clustering.cluster();
+//		
+		Matrix tfidf = termStats.getAllTfIdfAsJama();
+		SingularValueDecomposition svd = new SingularValueDecomposition(termStats.getAllTfIdfAsJama().transpose());
 //		System.out.println(svd.getU().getRowDimension());
 //		System.out.println(svd.getU().getColumnDimension());
 //		System.out.println(svd.getS().getRowDimension());
@@ -94,13 +109,49 @@ public class App
 //		System.out.println(svd.getV().getColumnDimension());
 //		System.out.println(Arrays.toString((new EigenvalueDecomposition(tfidf.times(tfidf.transpose()))).getRealEigenvalues()));
 //		System.out.println(Arrays.toString(svd.getSingularValues()));
-//		Matrix concepts = svd.getS().getMatrix(0, 0, 0, 23).times(svd.getV());
-//		System.out.println(concepts.getRowDimension());
-//		System.out.println(concepts.getColumnDimension());
-//		double[][] conceptsArr = concepts.getArray();
-//		for (double[] arr: conceptsArr) {
-//			System.out.println(Arrays.toString(arr));
-//		}
+		Matrix concepts = svd.getS().getMatrix(0, 1, 0, 23).times(svd.getV());
+		System.out.println(concepts.getRowDimension());
+		System.out.println(concepts.getColumnDimension());
+		
+		double[][] conceptsArr = concepts.getArray();
+		for (double[] arr: conceptsArr) {
+			System.out.println(Arrays.toString(arr));
+		}
+		
+		final class LinePlotTest extends JFrame {
+		    public LinePlotTest(double[][] concepts, String[] files) {
+		        setDefaultCloseOperation(EXIT_ON_CLOSE);
+		        setSize(600, 400);
+
+		        DataTable data1 = new DataTable(Double.class, Double.class);
+		        DataTable data2 = new DataTable(Double.class, Double.class);
+		        DataTable data3 = new DataTable(Double.class, Double.class);
+		        
+				for (int i=0; i < concepts[0].length; i++) {
+					if(files[i].contains("C1")) {
+						data1.add(concepts[0][i], concepts[1][i]);	
+					}
+					else if(files[i].contains("C4")) {
+						data2.add(concepts[0][i], concepts[1][i]);	
+					}
+					else {
+						data3.add(concepts[0][i], concepts[1][i]);	
+					}
+					
+				}
+		        XYPlot plot = new XYPlot(data1, data2, data3);
+		        getContentPane().add(new InteractivePanel(plot));
+		        plot.getPointRenderers(data1).get(0).setColor(new Color(0.0f, 0.3f, 1.0f));
+		        plot.getPointRenderers(data2).get(0).setColor(new Color(1.0f, 0.3f, 0.0f));
+		        plot.getPointRenderers(data3).get(0).setColor(new Color(0.0f, 1.0f, 0.0f));
+		        
+		    }
+
+		}
+		
+		
+		LinePlotTest frame = new LinePlotTest(conceptsArr, files_words.keySet().toArray(new String[24]));
+        frame.setVisible(true);
 		
 //		System.out.println((new SingularValueDecomposition(termStats.getAllTfIdfAsJama())).rank());
     	

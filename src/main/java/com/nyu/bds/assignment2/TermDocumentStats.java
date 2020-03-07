@@ -97,26 +97,14 @@ public class TermDocumentStats {
 			for (int i = 0; i < totalUniqueWords; i++) {
 				double res = Math.log(totalDocs/globalWordOccurence[i]);
 				res *= (wordFreqByFile.get(filePath)[i]*1.0) / numWordsInFile;
-//				if(wordFreqByFile.get(filePath)[i]>1){
-//					numValidWords+=1;
-//					System.out.println("Valid: " + filePath+"::" + allWords[i]);
-//				}else {
-//					res = 0.0;
-//				}
-//				if(res > 0.1) {
+//				 Remove all the super low frequency word
+				if(wordFreqByFile.get(filePath)[i] < 1){
+					res = 0.0;
+				}
 				wordTfIdf[i] = res;	
-//				}
 			}
-			System.out.println("ValidWords: " + filePath+"::" + numValidWords);
-//			for(int index: indexesOfTopElements(wordTfIdf, 10)){
-//				System.out.println(index +":"+ wordTfIdf[index]);
-//			};
-//			System.out.println(filePath +"-----"+ wordTfIdf[lookupWordId("airline")]);
 			wordTfidfByFile.put(filePath, wordTfIdf);
-			
 		}
-		
-		System.out.println("WORD AIRLINE" + globalWordOccurence[lookupWordId("airline")]);
 	}
 	
 	public int[] indexesOfTopElements(double[] orig, int nummax) {
@@ -131,7 +119,6 @@ public class TermDocumentStats {
         		if(orig[j] == honey[i] && !result.contains(j)) {
         			result.add(j);
         			arr[resultPos++] = j;
-        			System.out.println(allWords[j]);
         			break;
         		}
         	}
@@ -166,11 +153,5 @@ public class TermDocumentStats {
 		}
 		return new Matrix(res);
 	}
-	
-	
-	
-	
-	
-	
-	
+		
 }

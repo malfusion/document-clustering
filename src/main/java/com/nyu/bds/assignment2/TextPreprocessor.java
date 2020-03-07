@@ -19,7 +19,7 @@ public class TextPreprocessor {
 	
 	public TextPreprocessor() {
 		Properties props = new Properties();
-		props.setProperty("annotators", "tokenize,ssplit,stopword,pos,lemma");//,ner");
+		props.setProperty("annotators", "tokenize,ssplit,stopword,pos,lemma,ner");
 		props.setProperty("customAnnotatorClass.stopword", "intoxicant.analytics.coreNlp.StopwordAnnotator");
 		props.setProperty("ner.useSUTime", "false");
 		this.pipeline = new StanfordCoreNLP(props);
@@ -27,35 +27,61 @@ public class TextPreprocessor {
 	
 	public List<String> process(String content) {
 		ArrayList<String> res = new ArrayList<String>();
-		
+		content = content.replaceAll("\\p{Punct}"," ");
 		Annotation document = new Annotation(content);
+		
 		pipeline.annotate(document);
-		
-		
 		List<CoreLabel> labels = document.get(CoreAnnotations.TokensAnnotation.class);
-		res.addAll(getNamedEntities(labels));
 		
-		ArrayList<Integer> sizes = new ArrayList<Integer>(Arrays.asList(1));
-		res.addAll(getNGrams(labels, sizes));
+		labels = filterStopwords(labels);
 		
-		
+		List<String> words = groupNamedEntities(labels);
+		ArrayList<Integer> sizes = new ArrayList<Integer>(Arrays.asList(1,2,3));
+		res.addAll(getNGrams(words, sizes));
 		return res;
 	}
 	
-	private List<String> getNamedEntities(List<CoreLabel> labels){
-		return new ArrayList<String>();
-//		System.out.println(label.lemma()+ ' ' +label.ner());
+	private List<CoreLabel> filterStopwords(List<CoreLabel> labels){
+		List<CoreLabel> filtered = new ArrayList<CoreLabel>();
+		for (CoreLabel label: labels) {
+			if (!label.get(StopwordAnnotator.class).first()) {
+				filtered.add(label);
+			}	
+		}
+		return filtered;
 	}
 	
-	private List<String> getNGrams(List<CoreLabel> labels, List<Integer> sizes){
+	private List<String> groupNamedEntities(List<CoreLabel> labels){
+		ArrayList<String> res = new ArrayList<String>();
+		String prev = "";
+		String word = "";
+		
+		for(CoreLabel label: labels) {
+			String curr = label.ner();
+			if (label.ner().length() == 1|| prev != curr) {
+				if(word != "") {
+					res.add(word);
+				}
+				word = label.lemma();
+			}
+			else {
+				word += "_" + label.lemma();
+			}
+			prev = curr;
+		}
+		if(word != "") {
+			res.add(word);
+		}
+		return res;
+	}
+	
+	private List<String> getNGrams(List<String> words, List<Integer> sizes){
 		ArrayDeque<String> deque = new ArrayDeque<String>();
 		ArrayList<String> ngrams = new ArrayList<String>();
 		
-		Integer maxSize = Collections.max(sizes);
-		
-		for (CoreLabel label: labels) {
-			String word = label.lemma(); 
-			if (word != null && !label.get(StopwordAnnotator.class).first()) {
+		Integer maxSize = Collections.max(sizes);		
+		for (String word: words) {
+			if (word != null) {
 				word = word.replaceAll("\\p{Punct}","");
 				if(word.trim().length() == 0) {
 					continue;
