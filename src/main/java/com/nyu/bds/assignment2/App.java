@@ -86,21 +86,22 @@ public class App
 			for (int j = 0; j < termStats.getAllWords().length; j++) {
 				folderVector[i][j] = folderVector[i][j]/fileCounts[i];
 			}
-			System.out.println("Top 10 in folder "+ (i+1) +":");
-			int[] topWords = termStats.indexesOfTopElements(folderVector[i], 10);
+			int[] topWordsIndx = termStats.indexesOfTopElements(folderVector[i], 10);
+			String[] topWords = new String[10];
 			for (int j = 9; j >= 0; j--) {
-				System.out.println(termStats.getAllWords()[topWords[j]]);
+				topWords[9-j] = termStats.getAllWords()[topWordsIndx[j]];
 			}
+			System.out.println("Top 10 in folder "+ (i+1) +":" +Arrays.toString(topWords));
 			
 		}
 		
 		
 //		
-//		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), termStats.getAllTfIdf(), centroids);
-//		clustering.cluster();
+		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), termStats.getAllTfIdf(), folderVector);
+		clustering.cluster();
 //		
-		Matrix tfidf = termStats.getAllTfIdfAsJama();
-		SingularValueDecomposition svd = new SingularValueDecomposition(termStats.getAllTfIdfAsJama().transpose());
+//		Matrix tfidf = termStats.getAllTfIdfAsJama();
+//		SingularValueDecomposition svd = new SingularValueDecomposition(termStats.getAllTfIdfAsJama().transpose());
 //		System.out.println(svd.getU().getRowDimension());
 //		System.out.println(svd.getU().getColumnDimension());
 //		System.out.println(svd.getS().getRowDimension());
@@ -109,15 +110,15 @@ public class App
 //		System.out.println(svd.getV().getColumnDimension());
 //		System.out.println(Arrays.toString((new EigenvalueDecomposition(tfidf.times(tfidf.transpose()))).getRealEigenvalues()));
 //		System.out.println(Arrays.toString(svd.getSingularValues()));
-		Matrix concepts = svd.getS().getMatrix(0, 1, 0, 23).times(svd.getV());
-		System.out.println(concepts.getRowDimension());
-		System.out.println(concepts.getColumnDimension());
-		
-		double[][] conceptsArr = concepts.getArray();
-		for (double[] arr: conceptsArr) {
-			System.out.println(Arrays.toString(arr));
-		}
-		
+//		Matrix concepts = svd.getS().getMatrix(0, 1, 0, 23).times(svd.getV());
+//		System.out.println(concepts.getRowDimension());
+//		System.out.println(concepts.getColumnDimension());
+//		
+//		double[][] conceptsArr = concepts.getArray();
+//		for (double[] arr: conceptsArr) {
+//			System.out.println(Arrays.toString(arr));
+//		}
+//		
 		final class LinePlotTest extends JFrame {
 		    public LinePlotTest(double[][] concepts, String[] files) {
 		        setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -148,10 +149,10 @@ public class App
 		    }
 
 		}
-		
-		
-		LinePlotTest frame = new LinePlotTest(conceptsArr, files_words.keySet().toArray(new String[24]));
-        frame.setVisible(true);
+//		
+//		
+//		LinePlotTest frame = new LinePlotTest(conceptsArr, files_words.keySet().toArray(new String[24]));
+//        frame.setVisible(true);
 		
 //		System.out.println((new SingularValueDecomposition(termStats.getAllTfIdfAsJama())).rank());
     	

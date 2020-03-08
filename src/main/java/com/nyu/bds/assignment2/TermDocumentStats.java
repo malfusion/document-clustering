@@ -99,7 +99,7 @@ public class TermDocumentStats {
 				res *= (wordFreqByFile.get(filePath)[i]*1.0) / numWordsInFile;
 //				 Remove all the super low frequency word
 				if(wordFreqByFile.get(filePath)[i] < 1){
-					res = 0.0;
+//					res = 0.0;
 				}
 				wordTfIdf[i] = res;	
 			}
