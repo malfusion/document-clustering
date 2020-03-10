@@ -12,9 +12,12 @@ public class EuclideanSimilarityMeasure extends BaseSimilarityMeasure{
 	}
 
 	@Override
-	double getAverage(double[][] vectors) {
-		return 0;
+	double[] getAverageVector(double[][] vectors) {
+		// TODO Auto-generated method stub
+		return null;
 	}
+
+	
 	
 
 }

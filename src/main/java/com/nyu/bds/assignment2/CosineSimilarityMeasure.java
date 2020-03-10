@@ -1,5 +1,7 @@
 package com.nyu.bds.assignment2;
 
+import edu.stanford.nlp.util.ArrayUtils;
+
 public class CosineSimilarityMeasure extends BaseSimilarityMeasure {
 
 	@Override
@@ -13,9 +15,16 @@ public class CosineSimilarityMeasure extends BaseSimilarityMeasure {
 	}
 
 	@Override
-	double getAverage(double[][] vectors) {
-		// TODO Auto-generated method stub
-		return 0;
+	double[] getAverageVector(double[][] vectors) {
+		double[] res = new double[vectors[0].length];
+		for (int i = 0; i < vectors.length; i++) {
+			double[] normTfidf = ArrayUtils.normalize(vectors[i]);
+			for (int j = 0; j < normTfidf.length; j++) {
+				res[j] += normTfidf[j];
+			}
+		}
+		res = ArrayUtils.normalize(res);
+		return res;
 	}
 
 }
