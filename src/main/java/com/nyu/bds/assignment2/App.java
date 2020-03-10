@@ -20,6 +20,8 @@ import java.util.Scanner;
 import javax.swing.JFrame;
 
 import com.nyu.bds.assignment2.FileOperations;
+import com.nyu.bds.assignment2.KmeansClustering.DistanceMeasure;
+import com.nyu.bds.assignment2.KmeansClustering.InitialCentroids;
 
 import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
@@ -70,8 +72,12 @@ public class App
 		TopicAnalyser topicAnalyser = new TopicAnalyser(termStats);
 		topicAnalyser.processTopics("topics.txt");
 		
-		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), filesArr, termStats.getAllTfIdf(), null);
+		
+		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), filesArr, termStats.getAllTfIdf(), InitialCentroids.KMEANSPLUSPLUS, DistanceMeasure.COSINE);
 		clustering.cluster();
+//		AccuracyMeasures accMeasures = new AccuracyMeasures(clustering);
+//		accMeasures.printConfusionMatrix();
+//		accMeasures.FMeasure();
 		
 		Matrix tfidf = termStats.getAllTfIdfAsJama();
 		DimensionalityReducer dimReducer = new DimensionalityReducer(tfidf);

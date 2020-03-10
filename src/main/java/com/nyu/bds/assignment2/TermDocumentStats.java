@@ -94,10 +94,6 @@ public class TermDocumentStats {
 			for (int i = 0; i < allWords.length; i++) {
 				double res = Math.log(allFiles.length/globalWordOccurence[i]);
 				res *= (wordFreqByFile.get(filePath)[i]*1.0) / numWordsInFile;
-//				 Remove all the super low frequency word
-//				if(wordFreqByFile.get(filePath)[i] < 1){
-////					res = 0.0;
-//				}
 				wordTfIdf[i] = res;	
 			}
 			wordTfidfByFile.put(filePath, wordTfIdf);

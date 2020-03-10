@@ -18,16 +18,40 @@ public class KmeansClustering {
 	String[] files;
 	int numClusters;
 	HashMap<String, double[]> wordTfidfByFile;
+	BaseSimilarityMeasure similarityMeasure;
 	
-	public KmeansClustering(int numClusters, String[] features, String[] files, HashMap<String, double[]> wordTfidfByFile, double[][] initialCentroids) {
+	public enum InitialCentroids {
+	    RANDOM, KMEANSPLUSPLUS 
+	};
+	
+	public enum DistanceMeasure {
+	    EUCLIDEAN, COSINE
+	};
+	
+	public KmeansClustering(int numClusters, String[] features, String[] files, HashMap<String, double[]> wordTfidfByFile, InitialCentroids initCentroids, DistanceMeasure distMeasure) {
 		centroids = new double[numClusters][features.length];
 		this.numClusters = numClusters;
 		this.wordTfidfByFile = wordTfidfByFile;
-		this.features = features;
-		this.files = files;
-		if(initialCentroids == null) {
-			initKMeanPlusCentroids();
+		this.features 		= features;
+		this.files 		= files;
+		
+		switch(distMeasure) {
+			case EUCLIDEAN:
+				this.similarityMeasure = new EuclideanSimilarityMeasure();
+				break;
+			case COSINE:
+				this.similarityMeasure = new CosineSimilarityMeasure();
+				break;
 		}
+		switch(initCentroids) {
+			case RANDOM:
+				initRandomCentroids();
+				break;
+			case KMEANSPLUSPLUS:
+				initKMeanPlusCentroids();
+				break;
+		}
+		
 	}
 	
 	public boolean isAssignmentEqual(HashMap<String, Integer> A, HashMap<String, Integer> B) {
@@ -63,7 +87,8 @@ public class KmeansClustering {
 	public void initRandomCentroids() {
 		centroids = new double[numClusters][features.length];
 		for(int i=0; i < numClusters; i++) {
-			double[] randomPoint = wordTfidfByFile.get(wordTfidfByFile.keySet().toArray()[i]);
+			int randomIdx = (int) Math.floor(Math.random() * files.length); 
+			double[] randomPoint = wordTfidfByFile.get(files[randomIdx]);
 			for (int j = 0; j < features.length; j++) {
 				centroids[i][j] = randomPoint[j];
 			}
@@ -82,7 +107,7 @@ public class KmeansClustering {
 			for (double[] point: pointsLeft) {
 				double minCentroidDistance = Double.MAX_VALUE;
 				for(double[] centroid: initCentroids) {
-					double centroidDist = getCosineDistance(point, centroid);
+					double centroidDist = similarityMeasure.getDistance(point, centroid);
 					if(centroidDist < minCentroidDistance) {
 						minCentroidDistance = centroidDist;
 					}
@@ -97,7 +122,6 @@ public class KmeansClustering {
 			initCentroids.add(pointsLeft.remove(pointsLeft.indexOf(farthestPoint)));
 		}
 		centroids = initCentroids.toArray(centroids);
-		
 	}
 	
 	
@@ -167,7 +191,7 @@ public class KmeansClustering {
 			double minDistance = Double.MAX_VALUE;
 			for (int i = 0; i < numClusters; i++) {
 				// double distance = getEuclideanDistance(centroids[i], wordTfidfByFile.get(filePath));				
-				double distance = getCosineDistance(centroids[i], wordTfidfByFile.get(filePath));
+				double distance = similarityMeasure.getDistance(centroids[i], wordTfidfByFile.get(filePath));
 //				System.out.println(distance);
 				if(distance < minDistance) {
 					minDistance = distance;
@@ -181,38 +205,5 @@ public class KmeansClustering {
 	
 	
 	
-	public double getCosineDistance(double[] A, double[] B){
-		Double ASquared = getSqrtOfSquared(A);
-		Double BSquared = getSqrtOfSquared(B);
-		Double AB = getDotProduct(A, B);
-		Double similarity = AB / (ASquared*BSquared);
-		double distance = 1 - similarity;
-		return distance;
-	}
-	
-	
-	public double getSqrtOfSquared(double[] arr) {
-		double sum = 0.0;
-		for (int i = 0; i < features.length; i++) {
-			sum += Math.pow(arr[i], 2);
-		}
-		return Math.sqrt(sum);
-	}
-
-	public double getDotProduct(double[] centroidArr, double[] documentArr) {
-		double sum = 0.0;
-		for (int i = 0; i < features.length; i++) {
-			sum += documentArr[i] * centroidArr[i];
-		}
-		return sum;
-	}
-	
-	public double getEuclideanDistance(double[] centroidArr, double[] documentArr) {
-		double sum = 0.0;
-		for (int i = 0; i < features.length; i++) {
-			sum += Math.pow((centroidArr[i] - documentArr[i]), 2);
-		}
-		return Math.sqrt(sum);
-	}
 	
 }
