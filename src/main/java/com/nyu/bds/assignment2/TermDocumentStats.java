@@ -138,6 +138,18 @@ public class TermDocumentStats {
 		return wordTfidfByFile.get(filePath)[lookupWordId(word)];
 	}
 	
+	public double getWordFreq(String filePath, String word) {
+		if(!wordFreqByFile.containsKey(filePath)) {
+			return 0.0;
+		}
+		if(lookupWordId(word) == null) {
+			return 0.0;
+		}
+		return wordFreqByFile.get(filePath)[lookupWordId(word)]*1.0;
+	}
+	
+	
+	
 	public HashMap<String, double[]> getAllTfIdf(){
 		return wordTfidfByFile;
 	}

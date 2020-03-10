@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 
 import edu.stanford.nlp.util.ArrayUtils;
@@ -14,16 +15,18 @@ public class KmeansClustering {
 	
 	double[][] centroids;
 	String[] features;
+	String[] files;
 	int numClusters;
 	HashMap<String, double[]> wordTfidfByFile;
 	
-	public KmeansClustering(int numClusters, String[] features, HashMap<String, double[]> wordTfidfByFile, double[][] initialCentroids) {
-		this.centroids = initialCentroids;
+	public KmeansClustering(int numClusters, String[] features, String[] files, HashMap<String, double[]> wordTfidfByFile, double[][] initialCentroids) {
+		centroids = new double[numClusters][features.length];
 		this.numClusters = numClusters;
 		this.wordTfidfByFile = wordTfidfByFile;
 		this.features = features;
-		if(this.centroids == null) {
-			initRandomCentroids();
+		this.files = files;
+		if(initialCentroids == null) {
+			initKMeanPlusCentroids();
 		}
 	}
 	
@@ -44,24 +47,6 @@ public class KmeansClustering {
 		} else {
 			return false;
 		}
-		
-//		if (A != null && B != null) {
-//			if(A.keySet().equals(B.keySet())) {
-//				for (String key: A.keySet()) {
-//					if(A.get(key) != B.get(key)) {
-//						return false;
-//					}
-//				}
-//				return true;
-//			}
-//			else {
-//				return false;
-//			}
-//			
-//		}
-//		else {
-//			return false;
-//		}
 	}
 	
 	
@@ -85,19 +70,54 @@ public class KmeansClustering {
 		}
 	}
 	
+	public void initKMeanPlusCentroids() {
+		ArrayList<double[]> initCentroids = new ArrayList<double[]>();
+		ArrayList<double[]> pointsLeft = new ArrayList<double[]>(wordTfidfByFile.values());
+		//Add First Centroid
+		initCentroids.add(pointsLeft.remove(0));
+	
+		for(int i=1; i < numClusters; i++) {
+			double[] farthestPoint = null;
+			double maxDistance = Double.MIN_VALUE;
+			for (double[] point: pointsLeft) {
+				double minCentroidDistance = Double.MAX_VALUE;
+				for(double[] centroid: initCentroids) {
+					double centroidDist = getCosineDistance(point, centroid);
+					if(centroidDist < minCentroidDistance) {
+						minCentroidDistance = centroidDist;
+					}
+				}
+				// At this point, we will know the closest centroid to the current point
+				if(minCentroidDistance > maxDistance) {
+					farthestPoint = point;
+					maxDistance = minCentroidDistance;
+				}
+			}
+			// At this point, we will know the farthest point which can become the new centroid.
+			initCentroids.add(pointsLeft.remove(pointsLeft.indexOf(farthestPoint)));
+		}
+		centroids = initCentroids.toArray(centroids);
+		
+	}
+	
 	
 	
 	public void cluster() {
+		System.out.println("\nClustering");
 		HashMap<String, Integer> prev_files_centroids = null;
 		HashMap<String, Integer> files_centroids = assign();
 		while(!isAssignmentEqual(prev_files_centroids, files_centroids)) {
+			for (String file: files) {
+				System.out.println(file + " : " + files_centroids.get(file));	
+			}
+			
 			prev_files_centroids = files_centroids;
-			centroids = updateCentroids(files_centroids);
+			centroids = updateCentroidsUsingCosineAverage(files_centroids);
 			files_centroids = assign();
 		}
 	}
 	
-	public double[][] updateCentroids(HashMap<String, Integer> files_centroids) {
+	public double[][] updateCentroidsUsingEuclideanAverage(HashMap<String, Integer> files_centroids) {
 		double[][] newCentroids = new double[numClusters][features.length];
 		int[] numFiles = new int[3];
 		
@@ -116,6 +136,27 @@ public class KmeansClustering {
 				newCentroids[i][j] /= numFiles[i];	
 			}
 		}	
+		return newCentroids;
+	}
+	
+	
+	public double[][] updateCentroidsUsingCosineAverage(HashMap<String, Integer> files_centroids) {
+		double[][] newCentroids = new double[numClusters][features.length];
+		int[] numFiles = new int[3];
+		
+		for (String filePath: files_centroids.keySet()) {
+			int centroid = files_centroids.get(filePath);
+			numFiles[centroid] += 1;
+			
+			double[] normTfidf = ArrayUtils.normalize(wordTfidfByFile.get(filePath));
+			for (int j = 0; j < features.length; j++) {
+				newCentroids[centroid][j] += normTfidf[j];
+			}
+		}
+		
+		for (int i = 0; i < numClusters; i++) {
+			newCentroids[i] = ArrayUtils.normalize(newCentroids[i]);
+		}
 		return newCentroids;
 	}
 	
