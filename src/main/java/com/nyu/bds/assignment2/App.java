@@ -56,7 +56,6 @@ public class App
 		
 		for(String folderPath: FileOperations.readFileAsLines("data.txt")) {
 			for(String filePath : FileOperations.getFilesInFolder(folderPath)) {
-//				System.out.println(filePath);
 				String content = FileOperations.readFile(filePath);
 				files_words.put(filePath, preprocessor.process(content));
 				files.add(filePath);
@@ -68,54 +67,23 @@ public class App
 		termStats.process();
 		termStats.calculateTfIdf();
 		
-		
-//		TopicAnalyser topicAnalyser = new TopicAnalyser(termStats);
-//		topicAnalyser.processTopics("topics.txt");
-//		
+		TopicAnalyser topicAnalyser = new TopicAnalyser(termStats);
+		topicAnalyser.processTopics("topics.txt");
 		
 		KmeansClustering clustering = new KmeansClustering(3, termStats.getAllWords(), filesArr, termStats.getAllTfIdf(), null);
 		clustering.cluster();
-//		
-//		Matrix tfidf = termStats.getAllTfIdfAsJama();
-//		DimensionalityReducer dimReducer = new DimensionalityReducer(tfidf);
-//		
-//		double[][] svdConceptsArr = dimReducer.performSvd(2).getArray();		
-//		Visualizer svdVisualizer = new Visualizer(svdConceptsArr, new int[] {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2}, new String[] { topicAnalyser.getTopics()[0][0], topicAnalyser.getTopics()[1][0], topicAnalyser.getTopics()[2][0] } );
-//		
-//		double[][] pcaConceptsArr = dimReducer.performPca(2).getArray();
-//		Visualizer pcaVisualizer = new Visualizer(pcaConceptsArr, new int[] {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2}, new String[] { topicAnalyser.getTopics()[0][0], topicAnalyser.getTopics()[1][0], topicAnalyser.getTopics()[2][0] } );
+		
+		Matrix tfidf = termStats.getAllTfIdfAsJama();
+		DimensionalityReducer dimReducer = new DimensionalityReducer(tfidf);
+		
+		double[][] svdConceptsArr = dimReducer.performSvd(2).getArray();		
+		Visualizer svdVisualizer = new Visualizer(svdConceptsArr, new int[] {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2}, new String[] { topicAnalyser.getTopics()[0][0], topicAnalyser.getTopics()[1][0], topicAnalyser.getTopics()[2][0] } );
+		
+		double[][] pcaConceptsArr = dimReducer.performPca(2).getArray();
+		Visualizer pcaVisualizer = new Visualizer(pcaConceptsArr, new int[] {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2}, new String[] { topicAnalyser.getTopics()[0][0], topicAnalyser.getTopics()[1][0], topicAnalyser.getTopics()[2][0] } );
 		
 		
 		
-    	
-//    	System.out.println(preprocessor.process("Hello the i am is a random stranger"));
-    	
-//    	ArrayList<String> words = new ArrayList<String>();
-//    	words.add("Hello");
-//    	words.add("Welcome");
-//    	words.add("Bye");
-//    	String[] wordsstrs = new String[3];
-//    	HashMap<String, double[]> files_words_tfidf = new HashMap<String, double[]>();
-//    	
-//    	double[] words1 = new double[3];
-//    	words1[0] = 2.0;
-//    	words1[1] = 2.1;
-//    	words1[2] = 0.0;
-//    	files_words_tfidf.put("a", words1);
-//    	
-//    	double[] words2 = new double[3];
-//    	words2[0] = 0.0;
-//    	words2[1] = 0.0;
-//    	words2[2] = 1.0;
-//    	files_words_tfidf.put("b", words2);
-//    	
-//    	double[] words3 = new double[3];
-//    	words3[0] = 2.0;
-//    	words3[1] = 2.1;
-//    	words3[2] = 0.1;
-//    	files_words_tfidf.put("c", words3);
-//		KmeansClustering clustering2 = new KmeansClustering(2, words.toArray(wordsstrs), files_words_tfidf);
-//		clustering2.cluster();
 			
     }
 }
