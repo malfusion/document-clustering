@@ -22,44 +22,48 @@ public class KmeansClustering {
 		this.numClusters = numClusters;
 		this.wordTfidfByFile = wordTfidfByFile;
 		this.features = features;
-		this.centroids = new double[numClusters][features.length];
-		for(int i=0; i < numClusters; i++) {
-			double[] randomPoint = wordTfidfByFile.get(wordTfidfByFile.keySet().toArray()[i]);
-			for (int j = 0; j < features.length; j++) {
-				centroids[i][j] = randomPoint[j];
-			}
+		if(this.centroids == null) {
+			initRandomCentroids();
 		}
-		
-//		for (int i = 0; i < numClusters; i++) {
-//			System.out.println("^TopCentroid");
-//			for (int j = 0; j < features.length; j++) {
-//				System.out.print(centroids[i][j] + " ");
-//			}
-//			
-//		}
 	}
 	
 	public boolean isAssignmentEqual(HashMap<String, Integer> A, HashMap<String, Integer> B) {
 		if (A != null && B != null) {
-			if(A.keySet().equals(B.keySet())) {
-				for (String key: A.keySet()) {
-					if(A.get(key) != B.get(key)) {
-						return false;
-					}
-				}
-				return true;
-			}
-			else {
-				return false;
-			}
+			Integer[] a = new Integer[24];
+			a = A.values().toArray(a);
 			
-		}
-		else {
+			Integer[] b = new Integer[24];
+			b = B.values().toArray(b);
+					
+			for (int i = 0; i < 24; i++) {
+				if(a[i] != b[i]) {
+					return false;
+				}
+			}
+			return true;
+		} else {
 			return false;
 		}
+		
+//		if (A != null && B != null) {
+//			if(A.keySet().equals(B.keySet())) {
+//				for (String key: A.keySet()) {
+//					if(A.get(key) != B.get(key)) {
+//						return false;
+//					}
+//				}
+//				return true;
+//			}
+//			else {
+//				return false;
+//			}
+//			
+//		}
+//		else {
+//			return false;
+//		}
 	}
 	
-
 	
 	public void printCurrentCentroids() {
 		for (int i = 0; i < numClusters; i++) {
@@ -71,6 +75,15 @@ public class KmeansClustering {
 	}
 	
 	
+	public void initRandomCentroids() {
+		centroids = new double[numClusters][features.length];
+		for(int i=0; i < numClusters; i++) {
+			double[] randomPoint = wordTfidfByFile.get(wordTfidfByFile.keySet().toArray()[i]);
+			for (int j = 0; j < features.length; j++) {
+				centroids[i][j] = randomPoint[j];
+			}
+		}
+	}
 	
 	
 	
@@ -79,22 +92,20 @@ public class KmeansClustering {
 		HashMap<String, Integer> files_centroids = assign();
 		while(!isAssignmentEqual(prev_files_centroids, files_centroids)) {
 			prev_files_centroids = files_centroids;
-			System.out.println(files_centroids.values());
 			centroids = updateCentroids(files_centroids);
 			files_centroids = assign();
-			System.out.println(files_centroids.values());
 		}
 	}
 	
 	public double[][] updateCentroids(HashMap<String, Integer> files_centroids) {
 		double[][] newCentroids = new double[numClusters][features.length];
-		int[] numFiles 			= new int[3];
+		int[] numFiles = new int[3];
 		
 		for (String filePath: files_centroids.keySet()) {
-			int centroid 		= files_centroids.get(filePath);
+			int centroid = files_centroids.get(filePath);
 			numFiles[centroid] += 1;
 			
-			double[] tfidf 		= wordTfidfByFile.get(filePath);
+			double[] tfidf = wordTfidfByFile.get(filePath);
 			for (int j = 0; j < features.length; j++) {
 				newCentroids[centroid][j] += tfidf[j];
 			}
@@ -104,37 +115,7 @@ public class KmeansClustering {
 			for (int j = 0; j < features.length; j++) {
 				newCentroids[i][j] /= numFiles[i];	
 			}
-		}
-		
-		
-//		for (int i = 0; i < numClusters; i++) {
-//			ArrayList<String> filesOfCentroid = new ArrayList<String>();
-//			
-//			for (String filePath: files_centroids.keySet()) {
-//				if(files_centroids.get(filePath) == i) {
-//					filesOfCentroid.add(filePath);
-//				}
-//			}
-//			
-//			int numFiles = filesOfCentroid.size();
-//			if(numFiles == 0) {
-//				System.out.println("No Files belonging to centroid #" + i);
-//				continue;
-//			} else {
-//				for(String filePath: filesOfCentroid) {
-//					Double sum = 0.0;
-//					
-//					for (int j = 0; j < features.length; j++) {
-//						newCentroids[i][j] += tfidf[j];
-//					}
-//				}
-//				for (int j = 0; j < features.length; j++) {
-//					newCentroids[i][j] /= numFiles;	
-//				}
-//				
-//			}
-//			System.out.println("Files belonging to centroid #"+ i +" : "+ numFiles);
-//		}
+		}	
 		return newCentroids;
 	}
 	

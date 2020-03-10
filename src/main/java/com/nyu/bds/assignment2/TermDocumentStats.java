@@ -17,20 +17,18 @@ public class TermDocumentStats {
 	HashMap<String, int[]> wordFreqByFile = new HashMap<String, int[]>();
 	HashMap<String, double[]> wordTfidfByFile = new HashMap<String, double[]>();
 	HashMap<String, List<String>> wordListByFile = new HashMap<String, List<String>>();
-	
 	HashMap<String, Integer> wordIdLookup = new HashMap<String, Integer>();
 	
 	String[] allWords;
+	String[] allFiles;
 	int[] globalWordOccurence;
-	Integer totalDocs = 0;
-	Integer totalUniqueWords = 0;
 	
-	public TermDocumentStats(HashMap<String, List<String>> files_words) {
+	public TermDocumentStats(HashMap<String, List<String>> files_words, List<String> files) {
 		wordListByFile = files_words;
+		allFiles = new String[files.size()];
+		allFiles = files.toArray(allFiles);
 		generateWordLookupTable();
-		totalUniqueWords = wordIdLookup.size();
-		totalDocs = files_words.keySet().size();
-		globalWordOccurence = new int[totalUniqueWords];
+		globalWordOccurence = new int[allWords.length];
 	}
 	
 	
@@ -41,7 +39,7 @@ public class TermDocumentStats {
 	public void generateWordLookupTable() {
 		Integer ctr = 0;
 		List<String> words = new ArrayList<String>();
-		for (String filePath: wordListByFile.keySet()) {
+		for (String filePath: allFiles) {
 			for (String word: wordListByFile.get(filePath)) {
 				if(!wordIdLookup.containsKey(word)) {
 					wordIdLookup.put(word, ctr);
@@ -55,7 +53,7 @@ public class TermDocumentStats {
 	}
 	
 	public int[] getWordFreqForFile(String filePath) {
-		int[] wordCounts = new int[totalUniqueWords];
+		int[] wordCounts = new int[allWords.length];
 		for(String word: wordListByFile.get(filePath)) {
 			wordCounts[lookupWordId(word)] += 1;
 		}
@@ -63,7 +61,7 @@ public class TermDocumentStats {
 	}
 	
 	public void updateGlobalWordOccurence(int[] wordFreq) {
-		for (int i = 0; i < totalUniqueWords; i++) {
+		for (int i = 0; i < allWords.length; i++) {
 			if(wordFreq[i] > 0) {
 				globalWordOccurence[i] += 1;
 			}
@@ -72,7 +70,7 @@ public class TermDocumentStats {
 	
 	
 	public void process() {
-		for(String filePath : wordListByFile.keySet()) {
+		for(String filePath : allFiles) {
 			// Get Word Frequencies for file
 			int[] wordFreq= getWordFreqForFile(filePath);
 			// Add to file-word frequency map
@@ -86,16 +84,15 @@ public class TermDocumentStats {
 	}
 	
 	public void calculateTfIdf() {
-		for(String filePath : wordListByFile.keySet()) {
-			double[] wordTfIdf= new double[totalUniqueWords];
+		for(String filePath : allFiles) {
+			double[] wordTfIdf= new double[allWords.length];
 			int numWordsInFile = 0;
 			/// Count total words in file
 		    for (int count : wordFreqByFile.get(filePath)) {
 		        numWordsInFile += count;
 		    }
-		    int numValidWords = 0;
-			for (int i = 0; i < totalUniqueWords; i++) {
-				double res = Math.log(totalDocs/globalWordOccurence[i]);
+			for (int i = 0; i < allWords.length; i++) {
+				double res = Math.log(allFiles.length/globalWordOccurence[i]);
 				res *= (wordFreqByFile.get(filePath)[i]*1.0) / numWordsInFile;
 //				 Remove all the super low frequency word
 				if(wordFreqByFile.get(filePath)[i] < 1){
@@ -146,9 +143,9 @@ public class TermDocumentStats {
 	}
 	
 	public Matrix getAllTfIdfAsJama(){
-		double[][] res = new double[wordTfidfByFile.keySet().size()][totalUniqueWords];
+		double[][] res = new double[allFiles.length][allWords.length];
 		int i = 0;
-		for (String filePath : wordTfidfByFile.keySet()) {
+		for (String filePath : allFiles) {
 			res[i++] = wordTfidfByFile.get(filePath);
 		}
 		return new Matrix(res);

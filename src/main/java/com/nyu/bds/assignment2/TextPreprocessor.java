@@ -36,7 +36,7 @@ public class TextPreprocessor {
 		labels = filterStopwords(labels);
 		
 		List<String> words = groupNamedEntities(labels);
-		ArrayList<Integer> sizes = new ArrayList<Integer>(Arrays.asList(1,2,3));
+		ArrayList<Integer> sizes = new ArrayList<Integer>(Arrays.asList(1, 2));
 		res.addAll(getNGrams(words, sizes));
 		return res;
 	}
