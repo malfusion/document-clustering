@@ -3,7 +3,11 @@ A Java experiment on clustering of textual data, dimensionality reduction and vi
 
 ## Running the project
 - Import the project into Eclipse and install maven dependencies. There are no external JAR dependencies or references.
-- The program will output a topics.txt within the same folder for viewing
+  - You can do so by creating a new workspace and then File->Open Projects from File System, point to this folder.
+  - Run App.java which is the entrypoint.
+
+### About
+- The program will output a topics.txt within the same folder for viewing.
 - The plot for Original vs (K-Means++ / Cosine Distance) Predictions are also present in the folder for reference.
 - The output of the program is detailed and gives all the required details of accuracy, etc.
 - Running the program with different Enum values for DistanceMeasure and CentroidInitializer will result in different results in the SVD and PCA visualizations.
