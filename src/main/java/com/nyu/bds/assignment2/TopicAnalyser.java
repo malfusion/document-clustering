@@ -3,6 +3,7 @@ package com.nyu.bds.assignment2;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -75,5 +76,13 @@ public class TopicAnalyser {
 	
 	public String[][] getTopics(){
 		return this.topics;
+	}
+	
+	public String[] getTopTermsOfTopics() {
+		ArrayList<String> topTerms = new ArrayList<String>();
+		for (String[] topic: topics) {
+			topTerms.add(topic[0]);
+		}
+		return topTerms.toArray(new String[topics.length]);
 	}
 }

@@ -15,8 +15,8 @@ public class CosineSimilarityMeasure extends BaseSimilarityMeasure {
 	}
 
 	@Override
-	double[] getAverageVector(double[][] vectors) {
-		double[] res = new double[vectors[0].length];
+	double[] getAverageVector(int numFeatures, double[][] vectors) {
+		double[] res = new double[numFeatures];
 		for (int i = 0; i < vectors.length; i++) {
 			double[] normTfidf = ArrayUtils.normalize(vectors[i]);
 			for (int j = 0; j < normTfidf.length; j++) {

@@ -1,0 +1,3 @@
+Top 10 in folder 1 : [airline, police_force, police, pilot, guideline, ground, civil, safety, safety_guideline, grounding]
+Top 10 in folder 2 : [disease, likely, animal, meat, vaccine, drug, return, Greece, be_report, mouth]
+Top 10 in folder 3 : [rate, mortgage, bank, loan, per_cent, cent, Mr, per, Takenaka, Mr_Takenaka]

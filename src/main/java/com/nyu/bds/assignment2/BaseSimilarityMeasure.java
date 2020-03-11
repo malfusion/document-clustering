@@ -4,6 +4,6 @@ public abstract class BaseSimilarityMeasure {
 	
 	abstract double getDistance(double[] A, double[] B);
 	
-	abstract double[] getAverageVector(double[][] vectors);
+	abstract double[] getAverageVector(int numFeatures, double[][] vectors);
 	
 }

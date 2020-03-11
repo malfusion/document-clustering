@@ -13,8 +13,9 @@ public class Visualizer {
 
 	
 	
-	public Visualizer(double[][] conceptsArr, int[] conceptClusters, String[] clusterNames) {	
-		LinePlotTest frame = new LinePlotTest(conceptsArr, conceptClusters, clusterNames);
+	public Visualizer(double[][] conceptsArr, int[] conceptClusters, String[] clusterNames, String title) {	
+		ClusterPlotFrame frame = new ClusterPlotFrame(conceptsArr, conceptClusters, clusterNames);
+		frame.setTitle(title);
         frame.setVisible(true);
 	}
 	
@@ -32,8 +33,8 @@ public class Visualizer {
 		}	
 	}
 	
-	final class LinePlotTest extends JFrame {
-	    public LinePlotTest(double[][] concepts, int[] conceptClusters, String[] clusterNames) {
+	final class ClusterPlotFrame extends JFrame {
+	    public ClusterPlotFrame(double[][] concepts, int[] conceptClusters, String[] clusterNames) {
 	        setDefaultCloseOperation(EXIT_ON_CLOSE);
 	        setSize(600, 400);
 	        DataTable[] dataTables = new DataTable[3];
